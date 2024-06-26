@@ -2,9 +2,11 @@ import os
 import requests
 import re
 import wikipedia
+import api_key
 
 from bs4 import BeautifulSoup
 from openai import OpenAI
+
 
 def parse_wikipedia_json(json_data):
     parsed_text = ""
@@ -74,10 +76,10 @@ def search_wikipedia_page(user_query):
 
 def summarize_wikipedia_page(page_content):
     client = OpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY"),
+        api_key=api_key.OPENAI_API_KEY,
     )
 
-    prompt = "Please provide me a detailed summary of the contents of this Wikipedia page. In this summary, make sure to include the following details: 1. Name of the food\n 2. Other names for the food\n 3. Where/When/Why the food was invented\n 4. Who invented the food and how it became popular\n 5. The recipe/process to create the food\n 6. Other related foodstuffs and recipes\n Please format your short summary as multiple paragraphs instead of a bulleted or numbered list. It should flow naturally like a summary of the topic on Wikipedia."
+    prompt = load_prompt("food")
 
     chat_completion = client.chat.completions.create(
     messages=[
@@ -110,6 +112,11 @@ def get_wikipedia_page_content(topic):
     page_content = clean_wikipedia_text(parse_wikipedia_json(DATA))
 
     return page_content
+
+def load_prompt(topic):
+    f = open(r"prompts/food.txt", "r")
+    prompt = f.read()
+    return prompt
 
 user_query = input("Please input a topic you wish to learn more about:\n")
 topic = search_wikipedia_page(user_query)
