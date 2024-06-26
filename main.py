@@ -120,9 +120,7 @@ def load_prompt(topic):
 
 user_query = input("Please input a topic you wish to learn more about:\n")
 topic = search_wikipedia_page(user_query)
-# print("Topic identified:" + topic)
 page_content = get_wikipedia_page_content(topic)
-# print("Page content:" + page_content + "\n")
 gpt_summary = summarize_wikipedia_page(page_content)
 print(gpt_summary)
 
