@@ -1,8 +1,10 @@
-import os
-import requests
-import re
-import wikipedia
 import api_key
+
+import math
+import os
+import re
+import requests
+import wikipedia
 
 from bs4 import BeautifulSoup
 from openai import OpenAI
@@ -121,6 +123,16 @@ def load_prompt(topic):
 user_query = input("Please input a topic you wish to learn more about:\n")
 topic = search_wikipedia_page(user_query)
 page_content = get_wikipedia_page_content(topic)
-gpt_summary = summarize_wikipedia_page(page_content)
-print(gpt_summary)
+
+word_count = page_content.count(" ")
+est_token_count = word_count * 1.5
+print(word_count)
+print("Estimated token count: " + str(int(est_token_count)))
+
+if (est_token_count > 16000):
+    num_splits = math.ceil(est_token_count / 15000)
+    print("Number of splits needed: " + str(num_splits))
+
+# gpt_summary = summarize_wikipedia_page(page_content)
+# print(gpt_summary)
 
