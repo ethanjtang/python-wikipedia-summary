@@ -15,7 +15,6 @@ def parse_wikipedia_json(json_data):
     if 'parse' in json_data:
         page = json_data['parse']
         if 'text' in page and '*' in page['text']:
-            # The content is in HTML format, we need to parse it
             html_content = page['text']['*']
             soup = BeautifulSoup(html_content, 'html.parser')
             paragraphs = soup.find_all('p')
@@ -95,8 +94,39 @@ def summarize_wikipedia_page(page_content):
 
     gpt_summary = chat_completion.choices[0].message.content
 
-    return "Wikipedia page summarized by GPT-4:\n" + gpt_summary
+    return gpt_summary
 
+def combine_summaries(summaries):
+    f = open(r"prompts/test2.txt", "r")
+    prompt = f.read()
+    f.close()
+
+    paragraph_num = 1
+
+    for summary in summaries:
+        prompt += "Summary #" + str(paragraph_num) + ":" + "\n"
+        prompt += summary
+        prompt += "\n"
+        paragraph_num += 1
+    
+
+    client = OpenAI(
+        api_key=api_key.OPENAI_API_KEY,
+    )
+
+    chat_completion = client.chat.completions.create(
+    messages=[
+        {
+            "role": "user",
+            "content": prompt
+        }
+    ],
+    model="gpt-3.5-turbo",
+    )
+
+    summary_squared = chat_completion.choices[0].message.content
+
+    return summary_squared
 def get_wikipedia_page_content(topic):
     S = requests.Session()
 
@@ -116,13 +146,36 @@ def get_wikipedia_page_content(topic):
     return page_content
 
 def load_prompt(topic):
-    f = open(r"prompts/food.txt", "r")
+    f = open(r"prompts/test.txt", "r")
     prompt = f.read()
+    f.close
     return prompt
+
+def split_string(page_content):
+    split_string = []
+    
+    words = page_content.split()
+    
+    # Create a list to hold the chunks
+    chunks = []
+    
+    # Loop through the words and create chunks
+    for i in range(0, len(words), 10000):
+        chunk = words[i:i + 10000]
+        chunks.append(" ".join(chunk))
+    
+    for element in chunks:
+        print("\n")
+        print(element)
+        print("\n")
+    return chunks
+
+
 
 user_query = input("Please input a topic you wish to learn more about:\n")
 topic = search_wikipedia_page(user_query)
 page_content = get_wikipedia_page_content(topic)
+chunked_page_content = []
 
 word_count = page_content.count(" ")
 est_token_count = word_count * 1.5
@@ -132,7 +185,25 @@ print("Estimated token count: " + str(int(est_token_count)))
 if (est_token_count > 16000):
     num_splits = math.ceil(est_token_count / 15000)
     print("Number of splits needed: " + str(num_splits))
+    chunked_page_content = split_string(page_content)
 
-# gpt_summary = summarize_wikipedia_page(page_content)
-# print(gpt_summary)
+if (num_splits < 2):
+    gpt_summary = summarize_wikipedia_page(page_content)
+    print(gpt_summary)
+else:
+    for i in range(num_splits):
+        chunked_summaries = []
+        chunk = summarize_wikipedia_page(chunked_page_content[i])
+        print("Summary #" + str(i + 1))
+        print(chunk)
+        chunked_summaries.append(chunk)
 
+    gpt_summary = combine_summaries(chunked_summaries)
+    print("Final summary:\n")
+    print(gpt_summary)
+
+
+
+# 
+
+# res_first = test_str[0:len(test_str)//2] 
