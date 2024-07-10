@@ -127,6 +127,7 @@ def combine_summaries(summaries):
     summary_squared = chat_completion.choices[0].message.content
 
     return summary_squared
+
 def get_wikipedia_page_content(topic):
     S = requests.Session()
 
@@ -201,9 +202,3 @@ else:
     gpt_summary = combine_summaries(chunked_summaries)
     print("Final summary:\n")
     print(gpt_summary)
-
-
-
-# 
-
-# res_first = test_str[0:len(test_str)//2] 
